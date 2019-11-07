@@ -8,14 +8,17 @@
 #include <grp.h>
 #include <time.h>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
+// Flagi globalne odpowiadają argumentom -l, -R, -t, -h.
+// W zmiennej g_year przechowywany jest aktualny rok (potrebny do odpowiedniego formatowania wyjścia).
 int g_l;
 int g_R;
 int g_t;
 int g_h;
 int g_year;
 
+// Struktura zawiera wszystkie potrzebne informacje o pojedynczym pliku.
 typedef struct File
 {
 	char type;
@@ -31,16 +34,37 @@ typedef struct File
 	int isDir;
 } File;
 
-void ReadDirectory(char *name, File **files, int *count);
+// Funkcja otwiera wskazany folder (path), tworzy tablicę struktur File i uzupełnia ją. Ustawia wskaźnik files na tą tablicę, a do count zapisuje ilość elementów (plików).
+void LoadDirectory(char *path, File **files, int *count);
+
+// Funkcja odpowiada za poprawne wykonanie LoadDirectory, obsługę błędów, zwalnianie pamięci, obróbkę danych przed wyświetleniem w zależności od wybranych flag (w szczególności rekurencja).
 void ProcessDirectory(char *path);
+
+// Funkcja przetwarza informacje ze struktury File i opdowiednio je wyświetla
 void PrintFile(File file);
+
+// Wyświetla nformacje o błędzie w formacie: "ls: 'ŚCIEŻKA' NAZWA_FUNKCJI error" na standardowe wyjście błędów
 void PrintError(char *folder, char *type);
+
+// Funckcja łączy 2 fragmenty ścieżki i dodaje między nimi '/' o ile jest to konieczne.
 char *PathCombine(char *first, char *second);
+
+// Określa która struktura File jest większa (porównuje czas modyfikacji pliku). a > b <==> a jest nowszy niż b.
 int FileCompare(const void *a, const void *b);
+
+// Zamienia unix timestamp na napis. Alokuje pamięć - należy pamiętać o zwolnieniu.
 char *TimeToString(unsigned long timestamp);
+
+// Zamienia rozmiar pliku w bajtach na napis w jednostkach czytelnych dla człowieka (K, M, G, T, P) i zaokrągla do 1 miejsca po przecinku. Alokuje pamięć - należy pamiętać o zwolnieniu.
+// Przykład 4,9K - 4,9 kilobajtów.
 char *SizeBytesToString(unsigned long bytes);
+
+// Funcja zwraca 1 jeśli udało się zmienić jednostkę rozmiaru (*x > 1024), zamienia type na 'wyższy' oraz dzieli x przez 1024.0.
 int UpgradeSymbol(double *x, char *type);
+
+// Zaokrągla matematycznie value do 1 miejsca po przecinku
 double Round(double value);
+
 void Version();
 void Help(char *name);
 
@@ -88,16 +112,16 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void ReadDirectory(char *name, File **files, int *count)
+void LoadDirectory(char *path, File **files, int *count)
 {
 	DIR *dir;
 	struct dirent *dp;
 	struct stat statbuf;
 	int i = 0;
 
-	if ((dir = opendir(name)) == NULL)
+	if ((dir = opendir(path)) == NULL)
 	{
-		PrintError(name, "opendir");
+		PrintError(path, "opendir");
 		return;
 	}
 
@@ -109,16 +133,16 @@ void ReadDirectory(char *name, File **files, int *count)
 	File *tab = (File *)malloc(i * sizeof(File));
 	i = 0;
 
-	if ((dir = opendir(name)) == NULL)
+	if ((dir = opendir(path)) == NULL)
 	{
-		PrintError(name, "opendir");
+		PrintError(path, "opendir");
 		free(tab);
 		return;
 	}
 
 	while ((dp = readdir(dir)) != NULL)
 	{
-		char *filepath = PathCombine(name, dp->d_name);
+		char *filepath = PathCombine(path, dp->d_name);
 
 		if (stat(filepath, &statbuf) == -1)
 		{
@@ -153,6 +177,9 @@ void ReadDirectory(char *name, File **files, int *count)
 			break;
 		case DT_SOCK:
 			tab[i].type = 's';
+			break;
+		default:
+			tab[i].type = ' ';
 			break;
 		}
 
@@ -194,7 +221,7 @@ void ProcessDirectory(char *path)
 	int count = -1, dirs = 0, i;
 	File *files = NULL;
 
-	ReadDirectory(path, &files, &count);
+	LoadDirectory(path, &files, &count);
 
 	if (count < 0)
 		return;
@@ -261,7 +288,7 @@ void PrintFile(File file)
 	}
 	else
 	{
-		printf("%s	", file.name);
+		printf("%s    ", file.name);
 	}
 }
 
@@ -341,7 +368,7 @@ char *SizeBytesToString(unsigned long bytes)
 
 int UpgradeSymbol(double *x, char *type)
 {
-	if (*x < 1024)
+	if (*x < 1024 || *type == 'P')
 		return 0;
 	else
 		*x = *x / 1024.0;
