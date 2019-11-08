@@ -8,7 +8,7 @@
 #include <grp.h>
 #include <time.h>
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 // Flagi globalne odpowiadają argumentom -l, -R, -t, -h.
 // W zmiennej g_year przechowywany jest aktualny rok (potrebny do odpowiedniego formatowania wyjścia).
@@ -275,12 +275,12 @@ void PrintFile(File file)
 
 		if (!g_h)
 		{
-			printf("%c%s%s%s\t%d\t%s\t%s\t%ld\t%s\t%s\n", file.type, file.owner, file.group, file.other, file.links, pws->pw_name, grs->gr_name, file.size, time, file.name);
+			printf("%c%s%s%s\t%d\t%s\t%s\t%ld\t%s\t%s\n", file.type, file.owner, file.group, file.other, file.links, (pws == NULL || pws->pw_name == NULL) ? "deleted-user" : pws->pw_name, (grs == NULL || grs->gr_name == NULL) ? "deleted-group" : grs->gr_name, file.size, time, file.name);
 		}
 		else
 		{
 			char *size = SizeBytesToString(file.size);
-			printf("%c%s%s%s\t%d\t%s\t%s\t%s\t%s\t%s\n", file.type, file.owner, file.group, file.other, file.links, pws->pw_name, grs->gr_name, size, time, file.name);
+			printf("%c%s%s%s\t%d\t%s\t%s\t%s\t%s\t%s\n", file.type, file.owner, file.group, file.other, file.links, (pws == NULL || pws->pw_name == NULL) ? "deleted-user" : pws->pw_name, (grs == NULL || grs->gr_name == NULL) ? "deleted-group" : grs->gr_name, size, time, file.name);
 			free(size);
 		}
 
@@ -324,7 +324,10 @@ char *PathCombine(char *first, char *second)
 
 int FileCompare(const void *a, const void *b)
 {
-	return ((File *)a)->time < ((File *)b)->time;
+	if (((File *)a)->time == ((File *)b)->time)
+		return 0;
+	else
+		return ((File *)a)->time < ((File *)b)->time;
 }
 
 char *TimeToString(unsigned long timestamp)
