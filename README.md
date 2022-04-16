@@ -23,6 +23,3 @@ Avaible options:
         --help - print avaible commands
 Lists current directory by defalut.
 ```
-
-## License
-Copyright (c) guzlewski. All rights reserved.
