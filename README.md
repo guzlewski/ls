@@ -1,6 +1,6 @@
 # ls
 This is my version of ls with implemented flags: -l, -R, -t, -h, --version, --help.
-Program is fully working and tested on several different linux distros.
+The program is fully working and tested on several different linux distros.
 
 ## Compilation
 ```bash
