@@ -8,7 +8,7 @@
 #include <grp.h>
 #include <time.h>
 
-#define VERSION "1.2"
+#define VERSION "1.3"
 
 // Flagi globalne odpowiadają argumentom -l, -R, -t, -h.
 // W zmiennej g_year przechowywany jest aktualny rok (potrebny do odpowiedniego formatowania wyjścia).
@@ -413,13 +413,13 @@ void Version()
 void Help(char *name)
 {
 	printf("Usage: %s [OPTIONS] [PATH]\n", name);
-	printf("Avaible options:\n");
+	printf("Available options:\n");
 	printf("\t-l - display long format\n");
 	printf("\t-R - list subdirectories recursively\n");
 	printf("\t-t - sort files by last modified date, newest first\n");
-	printf("\t-h - print file size in human redable format (K, M, G, T, P)\n");
+	printf("\t-h - print file size in human-readable format (K, M, G, T, P)\n");
 	printf("\t--version - print information about version and author\n");
-	printf("\t--help - print avaible commands\n");
-	printf("Lists current directory by defalut.\n");
+	printf("\t--help - print available commands\n");
+	printf("Lists current directory by default.\n");
 	exit(0);
 }
